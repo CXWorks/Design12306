@@ -1,0 +1,93 @@
+
+CREATE TABLE IF NOT EXISTS account (
+  aid BIGINT NOT NULL AUTO_INCREMENT,
+  email VARCHAR(30) NOT NULL ,
+  password VARCHAR(20) NOT NULL ,
+  PRIMARY KEY (aid,email)
+);
+
+CREATE TABLE IF NOT EXISTS customer (
+  aid BIGINT NOT NULL ,
+  cid BIGINT NOT NULL ,
+  cname VARCHAR(255) NOT NULL ,
+  ctype TINYINT DEFAULT 0 NOT NULL ,
+  phone VARCHAR(20) DEFAULT NULL ,
+  identity VARCHAR(20) NOT NULL ,
+  PRIMARY KEY (aid,cid),
+  FOREIGN KEY aidf(aid) REFERENCES account(aid) ON DELETE CASCADE ON UPDATE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS carriage_stype_seats (
+  stype TINYINT NOT NULL DEFAULT 2,
+  row INTEGER NOT NULL ,
+  location TINYINT DEFAULT 0 NOT NULL ,
+  price DOUBLE DEFAULT 0,
+  student_price DOUBLE DEFAULT 0,
+  PRIMARY KEY (stype,row,location)
+);
+
+CREATE TABLE IF NOT EXISTS carriage (
+  carriage_id BIGINT NOT NULL AUTO_INCREMENT,
+  stype TINYINT DEFAULT 2 NOT NULL ,
+  producedAt DATETIME  DEFAULT '1000-01-01 00:00:00',
+  fixedAt DATETIME  DEFAULT '1000-01-01 00:00:00',
+  dumpedAt DATETIME   DEFAULT '1000-01-01 00:00:00',
+  PRIMARY KEY (carriage_id),
+  FOREIGN KEY stypef(stype) REFERENCES carriage_stype_seats(stype) ON DELETE CASCADE ON UPDATE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS train_carriage (
+  tid VARCHAR(20) NOT NULL ,
+  carriage_id BIGINT ,
+  stype TINYINT NOT NULL DEFAULT 2,
+  t_c_id TINYINT NOT NULL DEFAULT 0,
+  t_time DATETIME   DEFAULT '1000-01-01 00:00:00',
+  PRIMARY KEY (tid,carriage_id)
+);
+
+CREATE TABLE IF NOT EXISTS station_train (
+  station VARCHAR(255) NOT NULL ,
+  tid VARCHAR(20) NOT NULL ,
+  orderedNum INT DEFAULT 0 NOT NULL ,
+  arrive_at TIME NOT NULL ,
+  leave_at TIME NOT NULL ,
+  after_day TINYINT DEFAULT 0 NOT NULL ,
+  length DOUBLE DEFAULT 0 NOT NULL,
+  PRIMARY KEY (station,tid)
+);
+
+CREATE TABLE IF NOT EXISTS `order` (
+  `oid` VARCHAR(255) NOT NULL ,
+  aid BIGINT NOT NULL ,
+  orderAt DATETIME  DEFAULT '1000-01-01 00:00:00',
+  tid VARCHAR(20) NOT NULL ,
+  `start` VARCHAR(255) NOT NULL ,
+  `end` VARCHAR(255) NOT NULL ,
+  startAt DATETIME NOT NULL  DEFAULT '1000-01-01 00:00:00',
+  PRIMARY KEY (oid),
+  FOREIGN KEY aidf(aid) REFERENCES account(aid) ON UPDATE CASCADE ON DELETE CASCADE ,
+  FOREIGN KEY tidf(tid) REFERENCES train_carriage(tid) ON DELETE CASCADE ON UPDATE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS order_ticket (
+  `oid` VARCHAR(255) NOT NULL ,
+  cid BIGINT NOT NULL ,
+  aid BIGINT NOT NULL ,
+  stype TINYINT DEFAULT 2 NOT NULL ,
+  ctype TINYINT DEFAULT 0 NOT NULL ,
+  t_c_id TINYINT NOT NULL ,
+  row INT NOT NULL ,
+  location TINYINT NOT NULL ,
+  PRIMARY KEY (oid,cid),
+  FOREIGN KEY (aid) REFERENCES account(aid) ON DELETE CASCADE ON UPDATE CASCADE
+);
+
+# CREATE TABLE IF NOT EXISTS g_time (
+#   tid VARCHAR(20) NOT NULL ,
+#   t_c_id TINYINT NOT NULL ,
+#   stype TINYINT NOT NULL DEFAULT 2,
+#   row INTEGER NOT NULL ,
+#   location TINYINT DEFAULT 0 NOT NULL ,
+#   ticket BIT(?) DEFAULT b'?',
+#   PRIMARY KEY (tid,t_c_id,row,location)
+# );
