@@ -1,10 +1,12 @@
 package init;
 
 import java.sql.Connection;
+import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -77,14 +79,18 @@ public class CreateTrainTable {
 		}
 	}
 	public void  initG_Train() {
-		String sql="INSERT INTO `G?`(`tid`, `t_c_id`, `stype`, `row`, `location`) VALUES (?,?,?,?,?)";
+		String sql="INSERT INTO `G?`(`tid`, `train_date`, `t_c_id`, `stype`, `row`, `location`) VALUES (?,?,?,?,?,?)";
 		Map<String, Integer> t_c=getCarriage_seats();
 		Reader reader=new Reader();
 		List<String[]> train=reader.getRoutes();
+		
 		try (PreparedStatement pStatement=getConnection().prepareStatement(sql)){
 			for (String[] strings : train) {
+				Calendar calendar=Calendar.getInstance();
 				String tid=strings[0];
 				int ttid=Integer.parseInt(tid.substring(1));
+				for(int qqq=0;qqq<10;qqq++){
+					calendar.add(Calendar.DAY_OF_YEAR, 1);
 				if (t_c.get(tid)==8) {
 					//1
 					for(int i=0;i<1;i++){
@@ -93,6 +99,7 @@ public class CreateTrainTable {
 								int pq=1;
 								pStatement.setInt(pq++, ttid);
 								pStatement.setString(pq++,tid);
+								pStatement.setDate(pq++, new Date(calendar.getTimeInMillis()));
 								pStatement.setInt(pq++, i+1);
 								pStatement.setInt(pq++, 0);
 								pStatement.setInt(pq++, j+1);
@@ -108,6 +115,7 @@ public class CreateTrainTable {
 								int pq=1;
 								pStatement.setInt(pq++, ttid);
 								pStatement.setString(pq++,tid);
+								pStatement.setDate(pq++, new Date(calendar.getTimeInMillis()));
 								pStatement.setInt(pq++, i+1);
 								pStatement.setInt(pq++, 1);
 								pStatement.setInt(pq++, j+1);
@@ -123,6 +131,7 @@ public class CreateTrainTable {
 								int pq=1;
 								pStatement.setInt(pq++, ttid);
 								pStatement.setString(pq++,tid);
+								pStatement.setDate(pq++, new Date(calendar.getTimeInMillis()));
 								pStatement.setInt(pq++, i+1);
 								pStatement.setInt(pq++, 2);
 								pStatement.setInt(pq++, j+1);
@@ -140,6 +149,7 @@ public class CreateTrainTable {
 								int pq=1;
 								pStatement.setInt(pq++, ttid);
 								pStatement.setString(pq++,tid);
+								pStatement.setDate(pq++, new Date(calendar.getTimeInMillis()));
 								pStatement.setInt(pq++, i+1);
 								pStatement.setInt(pq++, 0);
 								pStatement.setInt(pq++, j+1);
@@ -155,6 +165,7 @@ public class CreateTrainTable {
 								int pq=1;
 								pStatement.setInt(pq++, ttid);
 								pStatement.setString(pq++,tid);
+								pStatement.setDate(pq++, new Date(calendar.getTimeInMillis()));
 								pStatement.setInt(pq++, i+1);
 								pStatement.setInt(pq++, 1);
 								pStatement.setInt(pq++, j+1);
@@ -170,6 +181,7 @@ public class CreateTrainTable {
 								int pq=1;
 								pStatement.setInt(pq++, ttid);
 								pStatement.setString(pq++,tid);
+								pStatement.setDate(pq++, new Date(calendar.getTimeInMillis()));
 								pStatement.setInt(pq++, i+1);
 								pStatement.setInt(pq++, 2);
 								pStatement.setInt(pq++, j+1);
@@ -180,6 +192,7 @@ public class CreateTrainTable {
 					}
 					pStatement.executeBatch();
 				}
+				}
 			}
 		} catch (Exception e) {
 			// TODO: handle exception
@@ -187,10 +200,10 @@ public class CreateTrainTable {
 		}
 	}
 	public void createTable() {
-		String sql = "CREATE TABLE IF NOT EXISTS `G?` (tid VARCHAR(20) NOT NULL ," + "t_c_id TINYINT NOT NULL ,"
+		String sql = "CREATE TABLE IF NOT EXISTS `G?` (tid VARCHAR(20) NOT NULL ,"+" train_date DATE NOT NULL ," + "t_c_id TINYINT NOT NULL ,"
 				+ "stype TINYINT NOT NULL DEFAULT 2," + "row INTEGER NOT NULL ,"
 				+ "location TINYINT DEFAULT 0 NOT NULL ," + "ticket BIT(?) DEFAULT b?,"
-				+ "PRIMARY KEY (tid,t_c_id,row,location)" + ");";
+				+ "PRIMARY KEY (tid,train_date,t_c_id,row,location)" + ");";
 		Reader reader=new Reader();
 		List<String[]> train=reader.getRoutes();
 		try(PreparedStatement pStatement=getConnection().prepareStatement(sql)) {

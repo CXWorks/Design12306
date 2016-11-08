@@ -21,7 +21,7 @@ public class MySQL {
 		ds = new HikariDataSource();
         ds.setMaximumPoolSize(20);
         ds.setDriverClassName("org.mariadb.jdbc.Driver");
-        ds.setJdbcUrl("jdbc:mariadb://114.55.37.133:15003/work3?useUnicode=true&characterEncoding=UTF-8");
+        ds.setJdbcUrl("jdbc:mariadb://127.0.0.1:3306/work3?useUnicode=true&characterEncoding=UTF-8");
         ds.addDataSourceProperty("user", "root");
         ds.addDataSourceProperty("password", "chicer2016");
         ds.setConnectionTimeout(60000);

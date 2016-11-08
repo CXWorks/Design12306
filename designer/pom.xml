@@ -59,7 +59,7 @@
                         <addClasspath>true</addClasspath>  
                         <classpathPrefix>lib/</classpathPrefix>  
 
-                        <mainClass>webProject.starter.Main</mainClass>  
+                        <mainClass>init.CreateTrainTable</mainClass>  
 
                     </manifest>  
                 </archive>  
