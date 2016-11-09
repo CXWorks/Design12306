@@ -26,8 +26,14 @@ public class CreateTrainTable {
 		mySQL=new MySQL();
 	}
 	public static void main(String[] args) {
-		CreateTrainTable a=new CreateTrainTable();
-		a.initG_Train();
+		try {
+			CreateTrainTable a=new CreateTrainTable();
+			a.initG_Train();
+		} catch (Exception e) {
+			// TODO: handle exception
+			e.printStackTrace();
+		}
+		
 	}
 	private Connection getConnection(){
 		try {
@@ -140,6 +146,21 @@ public class CreateTrainTable {
 							}
 						}
 					}
+					//5
+					for(int i=3;i<8;i++){
+						for(int j=0;j<20;j++){
+								int pq=1;
+								pStatement.setInt(pq++, ttid);
+								pStatement.setString(pq++,tid);
+								pStatement.setDate(pq++, new Date(calendar.getTimeInMillis()));
+								pStatement.setInt(pq++, i+1);
+								pStatement.setInt(pq++, 3);
+								pStatement.setInt(pq++, j+1);
+								pStatement.setInt(pq++, 5);
+								pStatement.addBatch();
+							
+						}
+					}
 					pStatement.executeBatch();
 				}else {
 					//3
@@ -177,7 +198,7 @@ public class CreateTrainTable {
 					//8
 					for(int i=8;i<16;i++){
 						for(int j=0;j<20;j++){
-							for(int k=0;k<6;k++){
+							for(int k=0;k<5;k++){
 								int pq=1;
 								pStatement.setInt(pq++, ttid);
 								pStatement.setString(pq++,tid);
@@ -188,6 +209,21 @@ public class CreateTrainTable {
 								pStatement.setInt(pq++, k);
 								pStatement.addBatch();
 							}
+						}
+					}
+					//
+					for(int i=8;i<16;i++){
+						for(int j=0;j<20;j++){							
+								int pq=1;
+								pStatement.setInt(pq++, ttid);
+								pStatement.setString(pq++,tid);
+								pStatement.setDate(pq++, new Date(calendar.getTimeInMillis()));
+								pStatement.setInt(pq++, i+1);
+								pStatement.setInt(pq++, 3);
+								pStatement.setInt(pq++, j+1);
+								pStatement.setInt(pq++, 5);
+								pStatement.addBatch();
+							
 						}
 					}
 					pStatement.executeBatch();
