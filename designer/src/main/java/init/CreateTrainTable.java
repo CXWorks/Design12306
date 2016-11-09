@@ -46,6 +46,22 @@ public class CreateTrainTable {
 			return null;
 		}
 	}
+	public void fix() {
+		String sql="UPDATE `G?` SET `stype`=3 WHERE `location`=5";
+		Reader reader=new Reader();
+		List<String[]> data=reader.getRoutes();
+		try (PreparedStatement pStatement=getConnection().prepareStatement(sql)){
+			for (String[] strings : data) {
+				String tid=strings[0];
+				int ttid=Integer.parseInt(tid.substring(1));
+				pStatement.setInt(1, ttid);
+				pStatement.addBatch();		
+			}
+			pStatement.executeBatch();
+		} catch (Exception e) {
+			// TODO: handle exception
+		}
+	}
 	private Map<String, Integer> getCarriage_seats() {
 		String sql="SELECT `tid`,COUNT(*) FROM `train_carriage` WHERE 1 GROUP BY `tid`";
 		//now just hard coding
@@ -89,12 +105,20 @@ public class CreateTrainTable {
 		Map<String, Integer> t_c=getCarriage_seats();
 		Reader reader=new Reader();
 		List<String[]> train=reader.getRoutes();
-		
+		int jj=0;
 		try (PreparedStatement pStatement=getConnection().prepareStatement(sql)){
 			for (String[] strings : train) {
+				if (jj==0) {
+					jj++;
+					continue;
+				}
 				Calendar calendar=Calendar.getInstance();
+				calendar.add(Calendar.DAY_OF_YEAR, -1);
 				String tid=strings[0];
 				int ttid=Integer.parseInt(tid.substring(1));
+				if (ttid<166) {
+					continue;
+				}
 				for(int qqq=0;qqq<10;qqq++){
 					calendar.add(Calendar.DAY_OF_YEAR, 1);
 				if (t_c.get(tid)==8) {
@@ -133,7 +157,7 @@ public class CreateTrainTable {
 					//5
 					for(int i=3;i<8;i++){
 						for(int j=0;j<20;j++){
-							for(int k=0;k<6;k++){
+							for(int k=0;k<5;k++){
 								int pq=1;
 								pStatement.setInt(pq++, ttid);
 								pStatement.setString(pq++,tid);

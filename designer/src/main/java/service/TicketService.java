@@ -13,5 +13,5 @@ public interface TicketService {
 	
 	public AutoResult queryTrain(String src,String target, Calendar date) ;
 	
-	public AutoResult orderTicket(String src,String target,Calendar date,int account, int... customer) ;
+	public AutoResult orderTicket(String src,String target,String tid,Calendar date,String seats_type, int account, int... customer) ;
 }
