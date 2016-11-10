@@ -8,5 +8,8 @@ package service;
  */
 
 public class AutoResult {
-
+	@Override
+	public String toString(){
+		return "no ticket";
+	}
 }

@@ -10,15 +10,15 @@ import java.util.Calendar;
 import java.util.List;
 
 import org.testng.annotations.BeforeTest;
-import org.testng.annotations.BeforeMethod;
-public class MySQLTest {
+
+public class TestOrder {
 	TicketService ticketService;
 	String[] destination;
 	Calendar calendar;
 	static volatile int i=0;
-  @Test(invocationCount = 1000, threadPoolSize = 100) 
+	String[] stypes={"商务座","一等座","二等座","无座"};
+	 @Test(invocationCount = 100, threadPoolSize = 60)
   public void f() {
-	 
 	  int start=0;
 		while(start==0||start==destination.length){
 			Double a=new Double(Math.random()*destination.length);
@@ -28,8 +28,17 @@ public class MySQLTest {
 		while(end<=start||end==destination.length){
 			end=new Double(Math.random()*destination.length).intValue();
 		}
-		System.out.println(ticketService.queryTrain(destination[start], destination[end], calendar));
-		System.out.println(++i);
+		int people = new Double(Math.random()*16).intValue();
+		if (people==0) {
+			people=1;
+		}
+		int[] a=new int[people];
+		for(int i=0;i<people;i++){
+			a[i]=i+1;
+		}
+		int stype=new Double(Math.random()*4).intValue();
+		System.out.println(ticketService.orderTicket(destination[start], destination[end], "G41", calendar, stypes[stype], 0, a));
+		System.out.println(i++);
   }
   @BeforeTest
   public void beforeTest() {
@@ -45,6 +54,5 @@ public class MySQLTest {
 			}
 		}
   }
-
 
 }
