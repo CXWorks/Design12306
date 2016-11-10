@@ -10,24 +10,12 @@ import java.util.Calendar;
 import java.util.List;
 
 import org.testng.annotations.BeforeTest;
-import org.testng.annotations.BeforeMethod;
 public class MySQLTest {
 	TicketService ticketService;
-	String[] destination;
+	String[] destination={"G41","北京南","德州东","济南西","曲阜东","蚌埠南","南京南","无锡东","上海虹桥","嘉兴南","杭州东"};
 	Calendar calendar;
-  @Test(invocationCount = 1, threadPoolSize = 50) 
+  @Test(invocationCount = 100, threadPoolSize = 50) 
   public void f() {
-	  calendar=Calendar.getInstance();
-		calendar.add(Calendar.DAY_OF_YEAR, 3);
-		ticketService=new MySQLProvider();
-		Reader reader =new Reader();
-		List<String[]> src=reader.getRoutes();
-		for (String[] strings : src) {
-			if (strings[0].equalsIgnoreCase("G41")) {
-				destination=strings;
-				break;
-			}
-		}
 	  int start=0;
 		while(start==0||start==destination.length){
 			Double a=new Double(Math.random()*destination.length);
@@ -42,33 +30,19 @@ public class MySQLTest {
   }
   @BeforeTest
   public void beforeTest() {
-	  calendar=Calendar.getInstance();
-		calendar.add(Calendar.DAY_OF_YEAR, 3);
+	  	calendar=Calendar.getInstance();
+		calendar.add(Calendar.DAY_OF_YEAR, 2);
 		ticketService=new MySQLProvider();
 		Reader reader =new Reader();
 		List<String[]> src=reader.getRoutes();
 		for (String[] strings : src) {
+			System.out.println(strings[0]);
 			if (strings[0].equalsIgnoreCase("G41")) {
+				
 				destination=strings;
 				break;
 			}
 		}
-  }
-  @BeforeMethod
-  public void doBeforeMethod() {
-  
-  	        System.err.println("testClass1: before method");
-  	      calendar=Calendar.getInstance();
-  		calendar.add(Calendar.DAY_OF_YEAR, 3);
-  		ticketService=new MySQLProvider();
-  		Reader reader =new Reader();
-  		List<String[]> src=reader.getRoutes();
-  		for (String[] strings : src) {
-  			if (strings[0].equalsIgnoreCase("G41")) {
-  				destination=strings;
-  				break;
-  			}
-  		}
   }
 
 }
