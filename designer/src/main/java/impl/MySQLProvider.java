@@ -36,10 +36,9 @@ public class MySQLProvider implements TicketService {
 		mySql=new MySQL();
 		pool=Interners.newWeakInterner();
 	}
-	private Connection getConection() {
+	private synchronized Connection getConection() {
 		try {
 			Connection connection=mySql.getConnection();
-			connection.setAutoCommit(true);
 			return connection;
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
@@ -53,29 +52,37 @@ public class MySQLProvider implements TicketService {
 				+ "FROM `station_train` t1, `station_train` t2 "
 				+ "WHERE t1.station = ? AND t2.station = ? "
 				+ "AND t1.`tid` = t2.`tid` AND t1.`orderedNum` < t2.`orderedNum`";
-		try (PreparedStatement pStatement=getConection().prepareStatement(sql)){
-			int j=1;
-			pStatement.setString(j++, src);
-			pStatement.setString(j++, target);
-			ResultSet resultSet=pStatement.executeQuery();
-			while (resultSet.next()) {
-				Integer[] a=new Integer[2];
-				String tid=resultSet.getString(1);
-				a[0] = resultSet.getInt(2);
-				a[1] = resultSet.getInt(3);
-				ans.put(tid, a);
+		synchronized (pool.intern(src)) {
+			try (Connection connection=getConection()){
+				PreparedStatement pStatement=connection.prepareStatement(sql);
+				int j=1;
+				pStatement.setString(j++, src);
+				pStatement.setString(j++, target);
+				ResultSet resultSet=pStatement.executeQuery();
+				while (resultSet.next()) {
+					Integer[] a=new Integer[2];
+					String tid=resultSet.getString(1);
+					a[0] = resultSet.getInt(2);
+					a[1] = resultSet.getInt(3);
+					ans.put(tid, a);
+				}				
+				connection.close();
+				return ans;
+			} catch (Exception e) {
+				// TODO: handle exception
+				e.printStackTrace();
+				return ans;
 			}
-			return ans;
-		} catch (Exception e) {
-			// TODO: handle exception
-			e.printStackTrace();
-			return ans;
+		
 		}
+			
+		
 	}
 	private int[] queryStationNum(String src,String target,String tid){
 		int[] ans=new int[2];
 		String sql="SELECT `orderedNum` FROM `station_train` WHERE `tid`= ? AND (`station`= ? OR `station`= ?) ORDER BY `orderedNum`";
-		try (PreparedStatement pStatement=getConection().prepareStatement(sql)){
+		try (Connection connection=getConection()){
+			PreparedStatement pStatement=connection.prepareStatement(sql);
 			int j=1;
 			pStatement.setString(j++, tid);
 			pStatement.setString(j++, src);
@@ -117,32 +124,38 @@ public class MySQLProvider implements TicketService {
 				+ "WHERE `train_date` = ? AND `ticket` & b? = b? "
 				+ "GROUP BY `stype`";
 		List<TrainSeats> trainSeats=new ArrayList<>(30);
-		try (PreparedStatement pStatement=getConection().prepareStatement(sql)){
-		for(Map.Entry<String, Integer[]> entry:avaliable.entrySet()){
-			String tid=entry.getKey();
-			Integer[] ordered=entry.getValue();
-			int ttid=Integer.parseInt(tid.substring(1));
-			if (ttid>140) {
-				continue;
-			}
-			String mask=generateMask(ordered[0], ordered[1]);
-			int j=1;
-				pStatement.setInt(j++, ttid);
-				pStatement.setDate(j++, new Date(date.getTimeInMillis()));
-				pStatement.setString(j++, mask);
-				pStatement.setString(j++, mask);
-				ResultSet resultSet=pStatement.executeQuery();
-				int[] seats=new int[5];
-				while(resultSet.next()){
-					seats[resultSet.getInt(1)]=resultSet.getInt(2);
+		synchronized (pool.intern(src)) {
+			try (Connection connection=getConection()){
+				PreparedStatement pStatement=connection.prepareStatement(sql);
+			for(Map.Entry<String, Integer[]> entry:avaliable.entrySet()){
+				String tid=entry.getKey();
+				Integer[] ordered=entry.getValue();
+				int ttid=Integer.parseInt(tid.substring(1));
+				if (ttid>140) {
+					continue;
 				}
-				trainSeats.add(new TrainSeats(tid, seats));
-			
+				String mask=generateMask(ordered[0], ordered[1]);
+				int j=1;
+					pStatement.setInt(j++, ttid);
+					pStatement.setDate(j++, new Date(date.getTimeInMillis()));
+					pStatement.setString(j++, mask);
+					pStatement.setString(j++, mask);
+					ResultSet resultSet=pStatement.executeQuery();
+					int[] seats=new int[5];
+					while(resultSet.next()){
+						seats[resultSet.getInt(1)]=resultSet.getInt(2);
+					}
+					
+					trainSeats.add(new TrainSeats(tid, seats));
+				
+			}
+			connection.close();
+			} catch (Exception e) {
+				// TODO: handle exception
+				e.printStackTrace();
+			}
 		}
-		} catch (Exception e) {
-			// TODO: handle exception
-			e.printStackTrace();
-		}
+		
 		AutoResult autoResult=new TicketQuery(date, src, target, trainSeats);
 		return autoResult;
 	}
@@ -276,6 +289,9 @@ public class MySQLProvider implements TicketService {
 		String update=generateUpadate(sid[0], sid[1]);
 		//
 		List<CustomerSeats> customerSeats=lockSeats(tid, date, stype, mask, update, len);
+		if (customerSeats.isEmpty()) {
+			return new AutoResult();
+		}
 		for(int i=0;i<customerSeats.size();i++){
 			customerSeats.get(i).cid=customer[i];
 		}

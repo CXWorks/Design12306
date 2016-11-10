@@ -26,6 +26,7 @@ public class MySQL {
         ds.addDataSourceProperty("user", "root");
         ds.addDataSourceProperty("password", "chicer2016");
         ds.setConnectionTimeout(60000);
+        ds.setMaxLifetime(500);
         ds.setAutoCommit(false);
 	}
     public Connection getConnection() throws SQLException {
