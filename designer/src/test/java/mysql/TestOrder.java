@@ -13,11 +13,11 @@ import org.testng.annotations.BeforeTest;
 
 public class TestOrder {
 	TicketService ticketService;
-	String[] destination;
+	String[] destination={"G41","北京南","德州东","济南西","曲阜东","蚌埠南","南京南","无锡东","上海虹桥","嘉兴南","杭州东"};
 	Calendar calendar;
 	static volatile int i=0;
 	String[] stypes={"商务座","一等座","二等座","无座"};
-	 @Test(invocationCount = 100, threadPoolSize = 60)
+	 @Test(invocationCount = 1300, threadPoolSize = 500)
   public void f() {
 	  int start=0;
 		while(start==0||start==destination.length){
@@ -37,13 +37,13 @@ public class TestOrder {
 			a[i]=i+1;
 		}
 		int stype=new Double(Math.random()*4).intValue();
-		System.out.println(ticketService.orderTicket(destination[start], destination[end], "G41", calendar, stypes[stype], 0, a));
+		System.out.println(ticketService.orderTicket(destination[start], destination[end], "G41", calendar, stypes[stype], 5, a));
 		System.out.println(i++);
   }
   @BeforeTest
   public void beforeTest() {
 	  calendar=Calendar.getInstance();
-		calendar.add(Calendar.DAY_OF_YEAR, 3);
+		calendar.add(Calendar.DAY_OF_YEAR, 4);
 		ticketService=new MySQLProvider();
 		Reader reader =new Reader();
 		List<String[]> src=reader.getRoutes();

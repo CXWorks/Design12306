@@ -10,9 +10,14 @@ import java.util.Calendar;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import com.google.common.collect.Interner;
 import com.google.common.collect.Interners;
+import com.mongodb.event.ConnectionCheckedInEvent;
 
 import connector.MySQL;
 import service.AutoResult;
@@ -163,8 +168,7 @@ public class MySQLProvider implements TicketService {
 	public static void main(String[] args) {
 		MySQLProvider mySQLProvider=new MySQLProvider();
 		Calendar calendar=Calendar.getInstance();
-		calendar.add(Calendar.DAY_OF_YEAR, 3);
-		System.out.println(mySQLProvider.queryTrain("济南西", "上海虹桥", calendar));
+		calendar.add(Calendar.DAY_OF_YEAR, 4);
 		System.out.println(mySQLProvider.orderTicket("济南西", "上海虹桥", "G41", calendar, "二等座", 1,1, 2));
 //		System.out.println(mySQLProvider.queryStationNum("济南西", "上海虹桥", "G41")[1]);
 //		System.out.println(generateUpadate(2, 5));
@@ -229,13 +233,24 @@ public class MySQLProvider implements TicketService {
 					pStatement2.setInt(j++, row);
 					pStatement2.setInt(j++, r[0]);
 					pStatement2.setInt(j++, r[1]);
-					pStatement2.executeUpdate();
-					pStatement2.close();
-					for (int i = r[0]+1; i < r[1]; i++) {
-						CustomerSeats customerSeats= new CustomerSeats(0, stype, t_c_id, row, i);
-						ans.add(customerSeats);
+					try {
+						pStatement2.executeUpdate();
+						connection.commit();
+						connection.close();
+						for (int i = r[0]+1; i < r[1]; i++) {
+							CustomerSeats customerSeats= new CustomerSeats(0, stype, t_c_id, row, i);
+							ans.add(customerSeats);
+						}
+						
+						return ans;
+					} catch (Exception e) {
+						e.printStackTrace();
+						connection.rollback();
+						System.out.println("rollback");
+						connection.close();
+						return ans;
 					}
-					return ans;
+					
 				}else {
 					String sql3="SELECT `t_c_id`, `row`, `location` FROM `G?` WHERE `train_date` = ? AND stype = ? AND `ticket` & b? = b? LIMIT ?";
 					PreparedStatement pStatement2=connection.prepareStatement(sql3);
@@ -265,8 +280,20 @@ public class MySQLProvider implements TicketService {
 							CustomerSeats customerSeats=new CustomerSeats(0, stype, t_c_id, row, location);
 							ans.add(customerSeats);
 						} while (resultSet2.next());
-						pStatement3.executeBatch();
-						return ans;
+						try {
+							pStatement3.executeBatch();
+							connection.commit();
+							connection.close();
+							return ans;
+						} catch (Exception e) {
+							// TODO: handle exception
+							System.out.println("rollback");
+							e.printStackTrace();
+							connection.rollback();
+							connection.close();
+							return ans;
+						}
+						
 					}else {
 						return ans;
 					}
@@ -278,6 +305,50 @@ public class MySQLProvider implements TicketService {
 		}
 		return ans;
 	}
+	private void insertOrder(String src, String tar,String tid, Calendar date,int account,List<CustomerSeats> customerSeats) {
+		synchronized (pool.intern(src)) {
+			try (Connection connection=getConection()){
+				
+				String sql1="INSERT INTO `order`(`oid`, `aid`, `orderAt`, `tid`, `start`, `end`, `startAt`) VALUES (?,?,?,?,?,?,?)";
+				PreparedStatement pStatement1=connection.prepareStatement(sql1);
+				int j=1;
+				String oid=src+tar+account+customerSeats.hashCode();
+				pStatement1.setString(j++, oid);
+				pStatement1.setInt(j++,account);
+				pStatement1.setDate(j++, new Date(Calendar.getInstance().getTimeInMillis()));
+				pStatement1.setString(j++, tid);
+				pStatement1.setString(j++, src);
+				pStatement1.setString(j++, tar);
+				pStatement1.setDate(j++, new Date(date.getTimeInMillis()));
+				pStatement1.execute();
+				String sql2="INSERT INTO `order_ticket`(`oid`, `cid`, `aid`, `stype`, `ctype`, `t_c_id`, `row`, `location`) VALUES (?,?,?,?,?,?,?,?)";
+				PreparedStatement pStatement2=connection.prepareStatement(sql2);
+				for (CustomerSeats customerSeats2 : customerSeats) {
+					j=1;
+					pStatement2.setString(j++, oid);
+					pStatement2.setInt(j++, customerSeats2.cid);
+					pStatement2.setInt(j++, account);
+					pStatement2.setInt(j++, customerSeats2.stype);
+					pStatement2.setInt(j++, 0);
+					pStatement2.setInt(j++, customerSeats2.t_c_id);
+					pStatement2.setInt(j++, customerSeats2.row);;
+					pStatement2.setInt(j++, customerSeats2.location);
+					pStatement2.addBatch();
+				}
+				pStatement2.executeBatch();
+				connection.commit();
+				connection.close();
+				System.out.println("order inserted");
+			} catch (Exception e) {
+				e.printStackTrace();
+				return ;
+				
+			}
+			return ;
+		}		
+		
+				
+}
 	@Override
 	public AutoResult orderTicket(String src, String target,String tid, Calendar date, String seats_type, int account, int... customer) {
 		int stype=seats2stype(seats_type);
@@ -285,6 +356,7 @@ public class MySQLProvider implements TicketService {
 		int[] sid=queryStationNum(src, target, tid);
 		//
 		int len=customer.length;
+		
 		String mask=generateMask(sid[0], sid[1]);
 		String update=generateUpadate(sid[0], sid[1]);
 		//
@@ -296,6 +368,7 @@ public class MySQLProvider implements TicketService {
 			customerSeats.get(i).cid=customer[i];
 		}
 		OrderResult orderResult=new OrderResult(date, src, target, customerSeats);
+		insertOrder(src, target, tid, date, account, customerSeats);
 		return orderResult;
 	}
 

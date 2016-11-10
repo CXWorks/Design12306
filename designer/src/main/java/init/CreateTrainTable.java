@@ -116,7 +116,7 @@ public class CreateTrainTable {
 				calendar.add(Calendar.DAY_OF_YEAR, -1);
 				String tid=strings[0];
 				int ttid=Integer.parseInt(tid.substring(1));
-				if (ttid<166) {
+				if (ttid<191) {
 					continue;
 				}
 				for(int qqq=0;qqq<10;qqq++){

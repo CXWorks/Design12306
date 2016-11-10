@@ -15,7 +15,7 @@ public class MySQLTest {
 	String[] destination={"G41","北京南","德州东","济南西","曲阜东","蚌埠南","南京南","无锡东","上海虹桥","嘉兴南","杭州东"};
 	Calendar calendar;
 
-  @Test(invocationCount = 100, threadPoolSize = 50) 
+  @Test(invocationCount = 1500, threadPoolSize = 500) 
   public void f() {
 	  int start=0;
 		while(start==0||start==destination.length){
@@ -27,7 +27,6 @@ public class MySQLTest {
 			end=new Double(Math.random()*destination.length).intValue();
 		}
 		System.out.println(ticketService.queryTrain(destination[start], destination[end], calendar));
-		System.out.println(++i);
   }
   @BeforeTest
   public void beforeTest() {

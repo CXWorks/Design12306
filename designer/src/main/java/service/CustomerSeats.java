@@ -8,10 +8,10 @@ package service;
 
 public class CustomerSeats {
 	public int cid;
-	private int stype;
-	private int t_c_id;
-	private int row;
-	private int location;
+	public int stype;
+	public int t_c_id;
+	public int row;
+	public int location;
 	public CustomerSeats(int cid, int stype, int t_c_id, int row, int location) {
 		this.cid = cid;
 		this.stype = stype;
