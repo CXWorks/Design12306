@@ -70,7 +70,8 @@ public class MySQLProvider implements TicketService {
 					a[0] = resultSet.getInt(2);
 					a[1] = resultSet.getInt(3);
 					ans.put(tid, a);
-				}				
+				}	
+				resultSet.close();
 				connection.close();
 				return ans;
 			} catch (Exception e) {
@@ -97,6 +98,7 @@ public class MySQLProvider implements TicketService {
 			for(int i=0;i<2&&resultSet.next();i++){
 				ans[i]=resultSet.getInt(1);
 			}
+			resultSet.close();
 			return ans;
 		} catch (Exception e) {
 			// TODO: handle exception
@@ -136,9 +138,6 @@ public class MySQLProvider implements TicketService {
 				String tid=entry.getKey();
 				Integer[] ordered=entry.getValue();
 				int ttid=Integer.parseInt(tid.substring(1));
-				if (ttid>140) {
-					continue;
-				}
 				String mask=generateMask(ordered[0], ordered[1]);
 				int j=1;
 					pStatement.setInt(j++, ttid);
@@ -150,7 +149,7 @@ public class MySQLProvider implements TicketService {
 					while(resultSet.next()){
 						seats[resultSet.getInt(1)]=resultSet.getInt(2);
 					}
-					
+					resultSet.close();
 					trainSeats.add(new TrainSeats(tid, seats));
 				
 			}
@@ -168,8 +167,9 @@ public class MySQLProvider implements TicketService {
 	public static void main(String[] args) {
 		MySQLProvider mySQLProvider=new MySQLProvider();
 		Calendar calendar=Calendar.getInstance();
-		calendar.add(Calendar.DAY_OF_YEAR, 4);
-		System.out.println(mySQLProvider.orderTicket("济南西", "上海虹桥", "G41", calendar, "二等座", 1,1, 2));
+		calendar.add(Calendar.DAY_OF_YEAR, 2);
+		System.out.println(mySQLProvider.queryTrain("济南西", "上海虹桥", calendar));
+//		System.out.println(mySQLProvider.orderTicket("济南西", "上海虹桥", "G41", calendar, "二等座", 1,1, 2));
 //		System.out.println(mySQLProvider.queryStationNum("济南西", "上海虹桥", "G41")[1]);
 //		System.out.println(generateUpadate(2, 5));
 	}
@@ -221,6 +221,7 @@ public class MySQLProvider implements TicketService {
 					int t_c_id=resultSet.getInt(1);
 					int row=resultSet.getInt(2);
 					int count=resultSet.getInt(3);
+					resultSet.close();
 					//lock
 					int[] r=getRange(count, stype, len);
 					
@@ -280,6 +281,7 @@ public class MySQLProvider implements TicketService {
 							CustomerSeats customerSeats=new CustomerSeats(0, stype, t_c_id, row, location);
 							ans.add(customerSeats);
 						} while (resultSet2.next());
+						resultSet2.close();
 						try {
 							pStatement3.executeBatch();
 							connection.commit();
@@ -312,7 +314,7 @@ public class MySQLProvider implements TicketService {
 				String sql1="INSERT INTO `order`(`oid`, `aid`, `orderAt`, `tid`, `start`, `end`, `startAt`) VALUES (?,?,?,?,?,?,?)";
 				PreparedStatement pStatement1=connection.prepareStatement(sql1);
 				int j=1;
-				String oid=src+tar+account+customerSeats.hashCode();
+				String oid=src+tar+account+Calendar.getInstance().getTimeInMillis();
 				pStatement1.setString(j++, oid);
 				pStatement1.setInt(j++,account);
 				pStatement1.setDate(j++, new Date(Calendar.getInstance().getTimeInMillis()));
