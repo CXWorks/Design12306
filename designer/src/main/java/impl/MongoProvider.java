@@ -39,7 +39,7 @@ import service.TicketService;
 public class MongoProvider implements TicketService {
 	
 	private Bson[] stype={new BasicDBObject("$min","stype_0"),new BasicDBObject("$min","stype_1"),new BasicDBObject("$min","stype_2"),new BasicDBObject("$min","stype_3")};
-	private BsonField[] sfields={new BsonField("0", stype[0]),new BsonField("1", stype[1]),new BsonField("2", stype[2]),new BsonField("3", stype[3])};
+	private BsonField[] sfields={new BsonField("s0", stype[0]),new BsonField("s1", stype[1]),new BsonField("s2", stype[2]),new BsonField("s3", stype[3])};
 	private MongoDatabase mongodb;
 	private MongoDB mongo;
 	public MongoProvider() {
@@ -67,7 +67,8 @@ public class MongoProvider implements TicketService {
 		Set<String[]> tidset=new HashSet<>(40);
 		while (cursor.hasNext()) {
 			Document document = cursor.next();
-			String[] strings={document.getString("tid"),((Document)document.get(src)).getString("orderNum"),((Document)document.get(src)).getString("orderNum")};
+			String[] strings={document.getString("tid"),Integer.toString((int) ((Document)document.get(src)).get("orderNum"))
+					,Integer.toString((int) ((Document)document.get(src)).get("orderNum"))};
 			tidset.add(strings);
 		}
 		cursor.close();
@@ -84,7 +85,7 @@ public class MongoProvider implements TicketService {
 				MongoCollection<Document> train=mongodb.getCollection(strings[0]);
 				AggregateIterable<Document> iterable2=train.aggregate(Arrays.asList(
 						Aggregates.match(Filters.and(Filters.gte("date", start),Filters.lt("date", end))),
-						Aggregates.project(Projections.fields(Projections.exclude("ticket"),
+						Aggregates.project(Projections.fields(
 								Projections.slice("stype_0", pst-1, pen-pst),Projections.slice("stype_1", pst-1, pen-pst),
 								Projections.slice("stype_2", pst-1, pen-pst),Projections.slice("stype_3", pst-1, pen-pst))),
 						Aggregates.group("$_id", sfields)));

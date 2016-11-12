@@ -34,13 +34,14 @@ public class InitMongo {
 	}
 	public static void main(String[] args) {
 		InitMongo initMongo=new InitMongo();
-		initMongo.initTrain();
+		initMongo.initSeats();
 
 	}
 	public void initSeats() {
 		MongoDatabase mongoDatabase=mongoDB.getMongoDB();
 		Reader reader=new Reader();
 		List<String[]> route=reader.getRoutes();
+		
 		Random random=new Random();
 		for (String[] strings : route) {
 			mongoDatabase.createCollection(strings[0]);
