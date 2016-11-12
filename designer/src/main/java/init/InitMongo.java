@@ -1,7 +1,9 @@
 package init;
 
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.List;
+import java.util.Random;
 
 import org.bson.Document;
 
@@ -29,30 +31,53 @@ public class InitMongo {
 	}
 	public static void main(String[] args) {
 		InitMongo initMongo=new InitMongo();
-		initMongo.initAccount();
+		initMongo.initTrain();
 
 	}
-	
+	public void initSeats() {
+		MongoDatabase mongoDatabase=mongoDB.getMongoDB();
+		Reader reader=new Reader();
+		List<String[]> route=reader.getRoutes();
+		Random random=new Random();
+		for (String[] strings : route) {
+			mongoDatabase.createCollection(strings[0]);
+			List<Document> documents=new ArrayList<>(15);
+			MongoCollection<Document> collection=mongoDatabase.getCollection(strings[0]);
+			Calendar calendar=Calendar.getInstance();
+			calendar.add(Calendar.HOUR, random.nextInt(10));
+			calendar.add(Calendar.MINUTE, random.nextInt(30));
+			for(int i=0;i<10;i++){
+				
+			}
+		}
+		
+	}
 	public void initTrain() {
 		MongoDatabase mongoDatabase=mongoDB.getMongoDB();
 		mongoDatabase.createCollection("train");
 		Reader reader=new Reader();
 		List<String[]> route=reader.getRoutes();
 		List<Document> documents=new ArrayList<>(200);
+		MongoCollection<Document> collection=mongoDatabase.getCollection("train");
 		for(String[] strings:route){
 			Document row=new Document();
 			String tid=strings[0];
 			row.append("tid", tid);
-			row.append("type", "8");
+			row.append("type", "8"); 
 			BasicDBList basicDBList=new BasicDBList();
+			double length = 0;
 			for(int j=1;j<strings.length;j++){
 				BasicDBObject basicDBObject=new BasicDBObject();
 				basicDBObject.append("orderNum", j);
 				basicDBObject.append("station", strings[j]);
-				basicDBObject.append("length", Math.random()*1000);
+				basicDBObject.append("length", length);
 				basicDBList.add(basicDBObject);
+				length+=Math.random()*1000;
 			}
+			row.append("station", basicDBList);
+			documents.add(row);
 		}
+		collection.insertMany(documents);
 	}
 	
 	public void initAccount() {
