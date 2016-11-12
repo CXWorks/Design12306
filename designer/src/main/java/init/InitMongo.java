@@ -2,6 +2,7 @@ package init;
 
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
 import java.util.Random;
 
@@ -26,6 +27,8 @@ import connector.MongoDB;
 public class InitMongo {
 	private MongoDB mongoDB;
 	
+	int[] seats_count16={120,400,800,160};
+	int[] seats_count8={40,160,500,100};
 	public InitMongo() {
 		mongoDB=new MongoDB();
 	}
@@ -41,14 +44,135 @@ public class InitMongo {
 		Random random=new Random();
 		for (String[] strings : route) {
 			mongoDatabase.createCollection(strings[0]);
-			List<Document> documents=new ArrayList<>(15);
 			MongoCollection<Document> collection=mongoDatabase.getCollection(strings[0]);
 			Calendar calendar=Calendar.getInstance();
+			calendar.add(Calendar.DAY_OF_YEAR, -1);
 			calendar.add(Calendar.HOUR, random.nextInt(10));
 			calendar.add(Calendar.MINUTE, random.nextInt(30));
+			double type=Math.random();
 			for(int i=0;i<10;i++){
-				
+				Document document=new Document();
+				document.append("date", new Date(calendar.getTimeInMillis()));
+				for(int k=0;k<4;k++){
+					BasicDBList list=new BasicDBList();
+					for (int j = 1; j < strings.length-1; j++) {
+						if (type<0.01) {
+							list.add(seats_count16[k]);
+						}else {
+							list.add(seats_count8[k]);
+						}
+					}
+					document.append("stype_"+Integer.toString(k), list);
+				}
+				calendar.add(Calendar.DAY_OF_YEAR,1);
+				BasicDBList ticket=new BasicDBList();
+				if (type<0.1) {
+					//16
+					//commercial
+					for(int p=1;p<4;p++){
+						for(int q=1;q<=10;q++){
+							for(int l=0;l<4;l++){
+								BasicDBObject object=new BasicDBObject();
+								object.append("stype", "0");
+								object.append("t_c_id", p);
+								object.append("row", q);
+								object.append("location", l);
+								object.append("ticket", Integer.MAX_VALUE);
+								ticket.add(object);
+							}
+						}
+					}
+					//first
+					for(int p=4;p<9;p++){
+						for(int q=1;q<=16;q++){
+							for(int l=0;l<5;l++){
+								BasicDBObject object=new BasicDBObject();
+								object.append("stype", "1");
+								object.append("t_c_id", p);
+								object.append("row", q);
+								object.append("location", l);
+								object.append("ticket", Integer.MAX_VALUE);
+								ticket.add(object);
+							}
+						}
+					}
+					//second&stand
+					for(int p=9;p<17;p++){
+						for(int q=1;q<=20;q++){
+							for(int l=0;l<6;l++){
+								BasicDBObject object=new BasicDBObject();
+								
+								object.append("t_c_id", p);
+								object.append("row", q);
+								object.append("location", l);
+								object.append("ticket", Integer.MAX_VALUE);
+								
+								if (l==5) {
+									object.append("stype", "3");
+								}else {
+									object.append("stype", "2");
+								}
+								
+								ticket.add(object);
+							}
+						}
+					}
+				}else {
+					//8
+					//commercial
+					for(int p=1;p<2;p++){
+						for(int q=1;q<=10;q++){
+							for(int l=0;l<4;l++){
+								BasicDBObject object=new BasicDBObject();
+								object.append("stype", "0");
+								object.append("t_c_id", p);
+								object.append("row", q);
+								object.append("location", l);
+								object.append("ticket", Integer.MAX_VALUE);
+								ticket.add(object);
+							}
+						}
+					}
+					//first
+					for(int p=2;p<4;p++){
+						for(int q=1;q<=16;q++){
+							for(int l=0;l<5;l++){
+								BasicDBObject object=new BasicDBObject();
+								object.append("stype", "1");
+								object.append("t_c_id", p);
+								object.append("row", q);
+								object.append("location", l);
+								object.append("ticket", Integer.MAX_VALUE);
+								ticket.add(object);
+							}
+						}
+					}
+					//second&stand
+					for(int p=4;p<9;p++){
+						for(int q=1;q<=20;q++){
+							for(int l=0;l<6;l++){
+								BasicDBObject object=new BasicDBObject();
+								
+								object.append("t_c_id", p);
+								object.append("row", q);
+								object.append("location", l);
+								object.append("ticket", Integer.MAX_VALUE);
+								
+								if (l==5) {
+									object.append("stype", "3");
+								}else {
+									object.append("stype", "2");
+								}
+								
+								ticket.add(object);
+							}
+						}
+					}
+				}
+				document.append("ticket", ticket);
+				collection.insertOne(document);
 			}
+			
 		}
 		
 	}
@@ -64,17 +188,14 @@ public class InitMongo {
 			String tid=strings[0];
 			row.append("tid", tid);
 			row.append("type", "8"); 
-			BasicDBList basicDBList=new BasicDBList();
 			double length = 0;
 			for(int j=1;j<strings.length;j++){
 				BasicDBObject basicDBObject=new BasicDBObject();
 				basicDBObject.append("orderNum", j);
-				basicDBObject.append("station", strings[j]);
 				basicDBObject.append("length", length);
-				basicDBList.add(basicDBObject);
+				row.append(strings[j], basicDBObject);
 				length+=Math.random()*1000;
 			}
-			row.append("station", basicDBList);
 			documents.add(row);
 		}
 		collection.insertMany(documents);
