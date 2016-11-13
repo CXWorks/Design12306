@@ -15,9 +15,10 @@ public class MongoDB {
 	private MongoDatabase mongoDatabase;
 	private void connect() {
 		Builder builder = MongoClientOptions.builder();
-		builder.maxConnectionLifeTime(500);
+		builder.maxConnectionLifeTime(200);
 		builder.connectTimeout(2000);
-		builder.connectionsPerHost(20);
+		builder.connectionsPerHost(50);
+		builder.threadsAllowedToBlockForConnectionMultiplier(300);
 		
 		MongoClient mongoClient=new MongoClient("114.55.37.133:15008",builder.build());
 		mongoDatabase=mongoClient.getDatabase("work3");

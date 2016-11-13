@@ -1,7 +1,8 @@
-package mysql;
+package mongodb;
 
 import org.testng.annotations.Test;
 
+import impl.MongoProvider;
 import impl.MySQLProvider;
 import init.Reader;
 import service.TicketService;
@@ -9,13 +10,15 @@ import service.TicketService;
 import java.util.Calendar;
 import java.util.List;
 
+import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeTest;
-public class MySQLTest {
+
+public class TestQuery {
 	TicketService ticketService;
 	String[] destination={"G41","北京南","德州东","济南西","曲阜东","蚌埠南","南京南","无锡东","上海虹桥","嘉兴南","杭州东"};
 	Calendar calendar;
 
-  @Test(invocationCount = 1500, threadPoolSize = 300) 
+  @Test(invocationCount = 1300, threadPoolSize = 300) 
   public void f() {
 	  int start=0;
 		while(start==0||start==destination.length){
@@ -26,13 +29,12 @@ public class MySQLTest {
 		while(end<=start||end==destination.length){
 			end=new Double(Math.random()*destination.length).intValue();
 		}
-		System.out.println(ticketService.queryTrain(destination[start], destination[end], calendar));
+		System.out.println(ticketService.queryTrain(destination[start], destination[end], Calendar.getInstance()));
   }
-  @BeforeTest
-  public void beforeTest() {
+  @BeforeClass
+  public void beforeClass() {
 	  	calendar=Calendar.getInstance();
-		calendar.add(Calendar.DAY_OF_YEAR, 2);
-		ticketService=new MySQLProvider();
+		ticketService=new MongoProvider();
 		Reader reader =new Reader();
 		List<String[]> src=reader.getRoutes();
 		for (String[] strings : src) {
@@ -44,5 +46,6 @@ public class MySQLTest {
 			}
 		}
   }
+
 
 }
