@@ -44,6 +44,9 @@ public class InitMongo {
 		
 		Random random=new Random();
 		for (String[] strings : route) {
+			if (!strings[0].equalsIgnoreCase("G41")) {
+				continue;
+			}
 			mongoDatabase.createCollection(strings[0]);
 			MongoCollection<Document> collection=mongoDatabase.getCollection(strings[0]);
 			Calendar calendar=Calendar.getInstance();
@@ -78,7 +81,7 @@ public class InitMongo {
 								object.append("t_c_id", p);
 								object.append("row", q);
 								object.append("location", l);
-								object.append("ticket", Integer.MAX_VALUE);
+								object.append("ticket", Long.MAX_VALUE);
 								ticket.add(object);
 							}
 						}
